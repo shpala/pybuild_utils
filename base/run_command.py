@@ -109,13 +109,9 @@ def run_command_cb(cmd, policy):
     try:
         policy.update_progress_message(0.0, 'Command {0} started'.format(cmd))
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-        while True:
-            output = process.stdout.readline()
-            if output == '' and process.poll() is not None:
-                break
-            if output:
-                line = output.strip()
-                policy.process(Message(line, MessageType.MESSAGE))
+        for output in process.stdout:
+            line = output.strip()
+            policy.process(Message(line.decode("utf-8"), MessageType.MESSAGE))
         rc = process.poll()
         policy.update_progress_message(100.0, 'Command {0} finished successfully'.format(cmd))
     except subprocess.CalledProcessError as ex:
