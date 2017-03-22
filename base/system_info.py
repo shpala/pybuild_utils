@@ -3,6 +3,7 @@
 import platform
 import re
 
+
 class Architecture(object):
     def __init__(self, arch_str, bit, default_install_prefix_path):
         self.name_ = arch_str
@@ -18,6 +19,7 @@ class Architecture(object):
     def default_install_prefix_path(self):
         return self.default_install_prefix_path_
 
+
 class Platform(object):
     def __init__(self, name, arch, package_types):
         self.name_ = name
@@ -32,6 +34,7 @@ class Platform(object):
 
     def package_types(self):
         return self.package_types_
+
 
 class SupportedPlatform(object):
     def __init__(self, name, archs, package_types):
@@ -55,18 +58,25 @@ class SupportedPlatform(object):
 
         return None
 
-    def architecture_by_bit(self, arch_bit):
+    def architecture_by_arch_name(self, arch_name):
         for curr_arch in self.archs_:
-            if (curr_arch.bit() == arch_bit):
+            if (curr_arch.name() == arch_name):
                 return curr_arch
 
         return None
 
-SUPPORTED_PLATFORMS = [SupportedPlatform('linux', [Architecture('x86_64', 64, '/usr/local'), Architecture('i386', 32, '/usr/local')], ['DEB', 'RPM', 'TGZ']),
-                       SupportedPlatform('windows', [Architecture('x86_64', 64, '/mingw64'), Architecture('i386', 32, '/mingw32')], ['NSIS', 'ZIP']),
+
+SUPPORTED_PLATFORMS = [SupportedPlatform('linux', [Architecture('x86_64', 64, '/usr/local'),
+                                                   Architecture('i386', 32, '/usr/local'),
+                                                   Architecture('arm', 32, '/usr/local')], ['DEB', 'RPM', 'TGZ']),
+                       SupportedPlatform('windows',
+                                         [Architecture('x86_64', 64, '/mingw64'), Architecture('i386', 32, '/mingw32')],
+                                         ['NSIS', 'ZIP']),
                        SupportedPlatform('macosx', [Architecture('x86_64', 64, '/usr/local')], ['DragNDrop', 'ZIP']),
                        SupportedPlatform('freebsd', [Architecture('x86_64', 64, '/usr/local')], ['TGZ']),
-                       SupportedPlatform('android', [Architecture('armv7', 32, '/opt/android-ndk/platforms/android-9/arch-arm/usr/')], ['APK'])]
+                       SupportedPlatform('android', [
+                           Architecture('arm', 32, '/opt/android-ndk/platforms/android-9/arch-arm/usr/')], ['APK'])]
+
 
 def get_extension_by_package(package_type):
     if package_type == 'DEB':
@@ -86,6 +96,7 @@ def get_extension_by_package(package_type):
     else:
         return None
 
+
 def get_os():
     uname_str = platform.system()
     if 'MINGW' in uname_str:
@@ -103,15 +114,18 @@ def get_os():
     else:
         return None
 
-def get_arch_bit():
-    arch = platform.architecture()
-    return re.search(r'\d+', arch[0]).group()
+
+def get_arch_name():
+    return platform.processor()
+
 
 def get_supported_platform_by_name(platform):
     return next((x for x in SUPPORTED_PLATFORMS if x.name() == platform), None)
-    
+
+
 def gen_routing_key(platform, arch):
     return platform + '_' + arch
+
 
 class BuildSystem:
     def __init__(self, name, cmd_line, cmake_generator_arg):
@@ -128,9 +142,11 @@ class BuildSystem:
     def cmd_line(self):  # cmd + args
         return self.cmd_line_
 
+
 SUPPORTED_BUILD_SYSTEMS = [BuildSystem('ninja', ['ninja'], '-GNinja'),
                            BuildSystem('make', ['make', '-j2'], '-GUnix Makefiles'),
                            BuildSystem('gmake', ['gmake', '-j2'], '-GUnix Makefiles')]
+
 
 def get_supported_build_system_by_name(name):
     return next((x for x in SUPPORTED_BUILD_SYSTEMS if x.name() == name), None)
