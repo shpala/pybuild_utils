@@ -68,7 +68,7 @@ class SupportedPlatform(object):
 
 SUPPORTED_PLATFORMS = [SupportedPlatform('linux', [Architecture('x86_64', 64, '/usr/local'),
                                                    Architecture('i386', 32, '/usr/local'),
-                                                   Architecture('arm', 32, '/usr/local')], ['DEB', 'RPM', 'TGZ']),
+                                                   Architecture('armv7l', 32, '/usr/local')], ['DEB', 'RPM', 'TGZ']),
                        SupportedPlatform('windows',
                                          [Architecture('x86_64', 64, '/mingw64'), Architecture('i386', 32, '/mingw32')],
                                          ['NSIS', 'ZIP']),
@@ -116,7 +116,10 @@ def get_os():
 
 
 def get_arch_name():
-    return platform.processor()
+    arch = platform.machine()
+    if arch == 'AMD64':
+        return 'x86_64'
+    return arch
 
 
 def get_supported_platform_by_name(platform):
