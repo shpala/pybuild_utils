@@ -2,13 +2,16 @@
 
 import os
 
+
 class BuildError(Exception):
     def __init__(self, value):
         self.value_ = value
+
     def __str__(self):
         return self.value_
 
-def read_file_line_by_line(file):
+
+def read_file_line_by_line(file) -> list:
     if not os.path.exists(file):
         raise BuildError('file path: %s not exists' % file)
 

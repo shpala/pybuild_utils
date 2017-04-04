@@ -78,7 +78,7 @@ SUPPORTED_PLATFORMS = [SupportedPlatform('linux', [Architecture('x86_64', 64, '/
                            Architecture('arm', 32, '/opt/android-ndk/platforms/android-9/arch-arm/usr/')], ['APK'])]
 
 
-def get_extension_by_package(package_type):
+def get_extension_by_package(package_type) -> str:
     if package_type == 'DEB':
         return 'deb'
     elif package_type == 'RPM':
@@ -97,7 +97,7 @@ def get_extension_by_package(package_type):
         return None
 
 
-def get_os():
+def get_os() -> str:
     uname_str = platform.system()
     if 'MINGW' in uname_str:
         return 'windows'
@@ -115,18 +115,18 @@ def get_os():
         return None
 
 
-def get_arch_name():
+def get_arch_name() -> str:
     arch = platform.machine()
     if arch == 'AMD64':
         return 'x86_64'
     return arch
 
 
-def get_supported_platform_by_name(platform):
+def get_supported_platform_by_name(platform) -> SupportedPlatform:
     return next((x for x in SUPPORTED_PLATFORMS if x.name() == platform), None)
 
 
-def gen_routing_key(platform, arch):
+def gen_routing_key(platform, arch) -> str:
     return platform + '_' + arch
 
 
@@ -151,5 +151,5 @@ SUPPORTED_BUILD_SYSTEMS = [BuildSystem('ninja', ['ninja'], '-GNinja'),
                            BuildSystem('gmake', ['gmake', '-j2'], '-GUnix Makefiles')]
 
 
-def get_supported_build_system_by_name(name):
+def get_supported_build_system_by_name(name) -> BuildSystem:
     return next((x for x in SUPPORTED_BUILD_SYSTEMS if x.name() == name), None)
