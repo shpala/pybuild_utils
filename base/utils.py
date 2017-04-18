@@ -4,6 +4,7 @@ import os
 import re
 import subprocess
 import tarfile
+import shutil
 from urllib.request import urlopen
 
 
@@ -93,9 +94,9 @@ def extract_file(path, current_dir):
     return os.path.join(current_dir, target_path)
 
 
-def build_command_configure(compiler_flags: CompileInfo, prefix_path):
+def build_command_configure(compiler_flags: CompileInfo, source_dir_path, prefix_path):
     # patches
-    script_dir = os.path.dirname(g_script_path)
+    script_dir = os.path.dirname(source_dir_path)
 
     for dir in compiler_flags.patches():
         scan_dir = os.path.join(script_dir, dir)
@@ -113,12 +114,12 @@ def build_command_configure(compiler_flags: CompileInfo, prefix_path):
     subprocess.call(['make', 'install'])
 
 
-def build_from_sources(url, compiler_flags: CompileInfo, prefix_path):
+def build_from_sources(url, compiler_flags: CompileInfo, source_dir_path, prefix_path):
     pwd = os.getcwd()
     file_path = download_file(url, pwd)
     extracted_folder = extract_file(file_path, pwd)
     os.chdir(extracted_folder)
-    build_command_configure(compiler_flags, prefix_path)
+    build_command_configure(compiler_flags, source_dir_path, prefix_path)
     os.chdir(pwd)
     shutil.rmtree(extracted_folder)
 
