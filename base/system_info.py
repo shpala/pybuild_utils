@@ -153,3 +153,20 @@ SUPPORTED_BUILD_SYSTEMS = [BuildSystem('ninja', ['ninja'], '-GNinja'),
 
 def get_supported_build_system_by_name(name) -> BuildSystem:
     return next((x for x in SUPPORTED_BUILD_SYSTEMS if x.name() == name), None)
+
+
+def linux_get_dist():
+    """
+    Return the running distribution group
+    RHEL: RHEL, CENTOS, FEDORA
+    DEBIAN: UBUNTU, DEBIAN
+    """
+    linux_tuple = platform.linux_distribution()
+    dist_name = linux_tuple[0]
+    dist_name_upper = dist_name.upper()
+
+    if dist_name_upper in ["RHEL", "CENTOS LINUX", "FEDORA"]:
+        return "RHEL"
+    elif dist_name_upper in ["DEBIAN", "UBUNTU"]:
+        return "DEBIAN"
+    raise NotImplemented("Unknown platform '%s'" % dist_name)
