@@ -5,6 +5,7 @@ import re
 import subprocess
 from abc import ABCMeta, abstractmethod
 
+
 class Architecture(object):
     def __init__(self, arch_str, bit, default_install_prefix_path):
         self.name_ = arch_str
@@ -21,54 +22,59 @@ class Architecture(object):
         return self.default_install_prefix_path_
 
 
-class Platform(object):
-    def __init__(self, name, arch, package_types):
+class Platform(metaclass=ABCMeta):
+    def __init__(self, name: str, arch: Architecture, package_types: list):
         self.name_ = name
         self.arch_ = arch
         self.package_types_ = package_types
 
-    def name(self):
+    def name(self) -> str:
         return self.name_
 
-    def arch(self):
+    def arch(self) -> Architecture:
         return self.arch_
 
-    def package_types(self):
+    def package_types(self) -> list:
         return self.package_types_
 
-
-class SupportedPlatform(metaclass=ABCMeta):
     @abstractmethod
     def install_package(self, name):
         pass
 
-    def __init__(self, name, archs, package_types):
+
+class SupportedPlatforms(metaclass=ABCMeta):
+    def __init__(self, name: str, archs: list, package_types: list):
         self.name_ = name
         self.archs_ = archs
         self.package_types_ = package_types
 
-    def name(self):
+    def name(self) -> str:
         return self.name_
 
-    def archs(self):
+    def archs(self) -> list:
         return self.archs_
 
-    def package_types(self):
+    def package_types(self) -> list:
         return self.package_types_
 
-    def architecture_by_arch(self, arch):
-        for curr_arch in self.archs_:
-            if (curr_arch.name == arch):
-                return curr_arch
-
-        return None
-
-    def architecture_by_arch_name(self, arch_name):
+    def architecture_by_arch_name(self, arch_name) -> Architecture:
         for curr_arch in self.archs_:
             if (curr_arch.name() == arch_name):
                 return curr_arch
 
         return None
+
+    @abstractmethod
+    def make_platform_by_arch(self, arch, package_types) -> Platform:
+        pass
+
+    def make_platform_by_arch_name(self, arch_name) -> Platform:
+        arch = self.architecture_by_arch_name(arch_name)
+        if not arch:
+            raise utils.BuildError('invalid arch')
+
+        packages_types = platform_or_none.package_types()
+        return make_platform_by_arch(arch, packages_types)
 
 
 def linux_get_dist():
@@ -88,62 +94,117 @@ def linux_get_dist():
     raise NotImplemented("Unknown platform '%s'" % dist_name)
 
 
-class LinuxPlatform(SupportedPlatform):
-    def __init__(self):
-        SupportedPlatform.__init__(self, 'linux', [Architecture('x86_64', 64, '/usr/local'),
-                                                   Architecture('i386', 32, '/usr/local'),
-                                                   Architecture('armv7l', 32, '/usr/local')], ['DEB', 'RPM', 'TGZ'])
-        distribution_ = None
+# Linux platforms
+
+class DebianPlatform(Platform):
+    def __init__(self, arch, package_types):
+        Platform.__init__(self, 'linux', arch, package_types)
 
     def install_package(self, name):
-        dist = self.distribution()
-        if self.distribution_ == 'DEBIAN':
-            subprocess.call(['apt-get', '-y', '--force-yes', 'install', name])
-        elif self.distribution_ == 'RHEL':
-            subprocess.call(['yum', '-y', 'install', name])
+        subprocess.call(['apt-get', '-y', '--force-yes', 'install', name])
+
+
+class RedHatPlatform(Platform):
+    def __init__(self, arch, package_types):
+        Platform.__init__(self, 'linux', arch, package_types)
+
+    def install_package(self, name):
+        subprocess.call(['yum', '-y', 'install', name])
+
+
+class LinuxPlatforms(SupportedPlatforms):
+    def __init__(self):
+        SupportedPlatforms.__init__(self, 'linux', [Architecture('x86_64', 64, '/usr/local'),
+                                                    Architecture('i386', 32, '/usr/local'),
+                                                    Architecture('armv7l', 32, '/usr/local')], ['DEB', 'RPM', 'TGZ'])
+        distribution_ = None
 
     def distribution(self) -> str:
         if not self.distribution_:
             self.distribution_ = linux_get_dist()
         return self.distribution_
 
+    def make_platform_by_arch(self, arch, package_types) -> Platform:
+        distr = self.distribution()
+        if distr == 'DEBIAN':
+            return DebianPlatform(arch, package_types)
+        elif distr == 'RHEL':
+            return RedHatPlatform(arch, package_types)
+        raise NotImplemented("Unknown distribution '%s'" % distr)
 
-class WindowsPlatform(SupportedPlatform):
-    def __init__(self):
-        SupportedPlatform.__init__(self, 'windows', [Architecture('x86_64', 64, '/mingw64'),
-                                                     Architecture('i386', 32, '/mingw32')], ['NSIS', 'ZIP'])
+
+# Windows platforms
+class WindowsMingwPlatform(Platform):
+    def __init__(self, arch, package_types):
+        Platform.__init__(self, 'windows', arch, package_types)
 
     def install_package(self, name):
         subprocess.call(['pacman', '-SYq', name])
 
 
-class MacOSXPlatform(SupportedPlatform):
+class WindowsPlatforms(SupportedPlatforms):
     def __init__(self):
-        SupportedPlatform.__init__(self, 'macosx', [Architecture('x86_64', 64, '/usr/local')], ['DragNDrop', 'ZIP'])
+        SupportedPlatforms.__init__(self, 'windows', [Architecture('x86_64', 64, '/mingw64'),
+                                                      Architecture('i386', 32, '/mingw32')], ['NSIS', 'ZIP'])
+
+    def make_platform_by_arch(self, arch, package_types) -> Platform:
+        return WindowsMingwPlatform(arch, package_types)
+
+
+# MacOSX platforms
+class MacOSXCommonPlatform(Platform):
+    def __init__(self, arch, package_types):
+        Platform.__init__(self, 'macosx', arch, package_types)
 
     def install_package(self, name):
-        subprocess.call(['port', 'install', lib])
+        subprocess.call(['port', 'install', name])
 
 
-class FreeBSDPlatform(SupportedPlatform):
+class MacOSXPlatforms(SupportedPlatforms):
     def __init__(self):
-        SupportedPlatform.__init__(self, 'freebsd', [Architecture('x86_64', 64, '/usr/local')], ['TGZ'])
+        SupportedPlatforms.__init__(self, 'macosx', [Architecture('x86_64', 64, '/usr/local')], ['DragNDrop', 'ZIP'])
+
+    def make_platform_by_arch(self, arch, package_types) -> Platform:
+        return MacOSXCommonPlatform(arch, package_types)
+
+
+# FreeBSD platforms
+class FreeBSDCommonPlatform(Platform):
+    def __init__(self, arch, package_types):
+        Platform.__init__(self, 'freebsd', arch, package_types)
 
     def install_package(self, name):
         raise NotImplementedError('You need to define a install_package method!')
 
 
-class AndroidPlatform(SupportedPlatform):
+class FreeBSDPlatforms(SupportedPlatforms):
     def __init__(self):
-        SupportedPlatform.__init__(self, 'android',
-                                   [Architecture('arm', 32, '/opt/android-ndk/platforms/android-9/arch-arm/usr/')],
-                                   ['APK'])
+        SupportedPlatforms.__init__(self, 'freebsd', [Architecture('x86_64', 64, '/usr/local')], ['TGZ'])
+
+    def make_platform_by_arch(self, arch, package_types) -> Platform:
+        return FreeBSDCommonPlatform(arch, package_types)
+
+
+# Android platforms
+class AndroidCommonPlatform(Platform):
+    def __init__(self, arch, package_types):
+        Platform.__init__(self, 'android', arch, package_types)
 
     def install_package(self, name):
         raise NotImplementedError('You need to define a install_package method!')
 
 
-SUPPORTED_PLATFORMS = [LinuxPlatform(), WindowsPlatform(), MacOSXPlatform(), FreeBSDPlatform(), AndroidPlatform()]
+class AndroidPlatforms(SupportedPlatforms):
+    def __init__(self):
+        SupportedPlatforms.__init__(self, 'android',
+                                    [Architecture('arm', 32, '/opt/android-ndk/platforms/android-9/arch-arm/usr/')],
+                                    ['APK'])
+
+    def make_platform_by_arch(self, arch, package_types) -> Platform:
+        return AndroidCommonPlatform(arch, package_types)
+
+
+SUPPORTED_PLATFORMS = [LinuxPlatforms(), WindowsPlatforms(), MacOSXPlatforms(), FreeBSDPlatforms(), AndroidPlatforms()]
 
 
 def get_extension_by_package(package_type) -> str:
@@ -190,7 +251,7 @@ def get_arch_name() -> str:
     return arch
 
 
-def get_supported_platform_by_name(platform) -> SupportedPlatform:
+def get_supported_platform_by_name(platform) -> SupportedPlatforms:
     return next((x for x in SUPPORTED_PLATFORMS if x.name() == platform), None)
 
 
