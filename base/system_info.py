@@ -2,7 +2,8 @@
 
 import platform
 import re
-
+import subprocess
+from abc import ABCMeta, abstractmethod
 
 class Architecture(object):
     def __init__(self, arch_str, bit, default_install_prefix_path):
@@ -36,7 +37,11 @@ class Platform(object):
         return self.package_types_
 
 
-class SupportedPlatform(object):
+class SupportedPlatform(metaclass=ABCMeta):
+    @abstractmethod
+    def install_package(self, name):
+        pass
+
     def __init__(self, name, archs, package_types):
         self.name_ = name
         self.archs_ = archs
@@ -66,16 +71,79 @@ class SupportedPlatform(object):
         return None
 
 
-SUPPORTED_PLATFORMS = [SupportedPlatform('linux', [Architecture('x86_64', 64, '/usr/local'),
+def linux_get_dist():
+    """
+    Return the running distribution group
+    RHEL: RHEL, CENTOS, FEDORA
+    DEBIAN: UBUNTU, DEBIAN
+    """
+    linux_tuple = platform.linux_distribution()
+    dist_name = linux_tuple[0]
+    dist_name_upper = dist_name.upper()
+
+    if dist_name_upper in ["RHEL", "CENTOS LINUX", "FEDORA"]:
+        return "RHEL"
+    elif dist_name_upper in ["DEBIAN", "UBUNTU"]:
+        return "DEBIAN"
+    raise NotImplemented("Unknown platform '%s'" % dist_name)
+
+
+class LinuxPlatform(SupportedPlatform):
+    def __init__(self):
+        SupportedPlatform.__init__(self, 'linux', [Architecture('x86_64', 64, '/usr/local'),
                                                    Architecture('i386', 32, '/usr/local'),
-                                                   Architecture('armv7l', 32, '/usr/local')], ['DEB', 'RPM', 'TGZ']),
-                       SupportedPlatform('windows',
-                                         [Architecture('x86_64', 64, '/mingw64'), Architecture('i386', 32, '/mingw32')],
-                                         ['NSIS', 'ZIP']),
-                       SupportedPlatform('macosx', [Architecture('x86_64', 64, '/usr/local')], ['DragNDrop', 'ZIP']),
-                       SupportedPlatform('freebsd', [Architecture('x86_64', 64, '/usr/local')], ['TGZ']),
-                       SupportedPlatform('android', [
-                           Architecture('arm', 32, '/opt/android-ndk/platforms/android-9/arch-arm/usr/')], ['APK'])]
+                                                   Architecture('armv7l', 32, '/usr/local')], ['DEB', 'RPM', 'TGZ'])
+        distribution_ = None
+
+    def install_package(self, name):
+        dist = self.distribution()
+        if self.distribution_ == 'DEBIAN':
+            subprocess.call(['apt-get', '-y', '--force-yes', 'install', name])
+        elif self.distribution_ == 'RHEL':
+            subprocess.call(['yum', '-y', 'install', name])
+
+    def distribution(self) -> str:
+        if not self.distribution_:
+            self.distribution_ = linux_get_dist()
+        return self.distribution_
+
+
+class WindowsPlatform(SupportedPlatform):
+    def __init__(self):
+        SupportedPlatform.__init__(self, 'windows', [Architecture('x86_64', 64, '/mingw64'),
+                                                     Architecture('i386', 32, '/mingw32')], ['NSIS', 'ZIP'])
+
+    def install_package(self, name):
+        subprocess.call(['pacman', '-SYq', name])
+
+
+class MacOSXPlatform(SupportedPlatform):
+    def __init__(self):
+        SupportedPlatform.__init__(self, 'macosx', [Architecture('x86_64', 64, '/usr/local')], ['DragNDrop', 'ZIP'])
+
+    def install_package(self, name):
+        subprocess.call(['port', 'install', lib])
+
+
+class FreeBSDPlatform(SupportedPlatform):
+    def __init__(self):
+        SupportedPlatform.__init__(self, 'freebsd', [Architecture('x86_64', 64, '/usr/local')], ['TGZ'])
+
+    def install_package(self, name):
+        raise NotImplementedError('You need to define a install_package method!')
+
+
+class AndroidPlatform(SupportedPlatform):
+    def __init__(self):
+        SupportedPlatform.__init__(self, 'android',
+                                   [Architecture('arm', 32, '/opt/android-ndk/platforms/android-9/arch-arm/usr/')],
+                                   ['APK'])
+
+    def install_package(self, name):
+        raise NotImplementedError('You need to define a install_package method!')
+
+
+SUPPORTED_PLATFORMS = [LinuxPlatform(), WindowsPlatform(), MacOSXPlatform(), FreeBSDPlatform(), AndroidPlatform()]
 
 
 def get_extension_by_package(package_type) -> str:
@@ -153,20 +221,3 @@ SUPPORTED_BUILD_SYSTEMS = [BuildSystem('ninja', ['ninja'], '-GNinja'),
 
 def get_supported_build_system_by_name(name) -> BuildSystem:
     return next((x for x in SUPPORTED_BUILD_SYSTEMS if x.name() == name), None)
-
-
-def linux_get_dist():
-    """
-    Return the running distribution group
-    RHEL: RHEL, CENTOS, FEDORA
-    DEBIAN: UBUNTU, DEBIAN
-    """
-    linux_tuple = platform.linux_distribution()
-    dist_name = linux_tuple[0]
-    dist_name_upper = dist_name.upper()
-
-    if dist_name_upper in ["RHEL", "CENTOS LINUX", "FEDORA"]:
-        return "RHEL"
-    elif dist_name_upper in ["DEBIAN", "UBUNTU"]:
-        return "DEBIAN"
-    raise NotImplemented("Unknown platform '%s'" % dist_name)
