@@ -65,7 +65,7 @@ class SupportedPlatforms(metaclass=ABCMeta):
         return None
 
     @abstractmethod
-    def make_platform_by_arch(self, arch, package_types) -> Platform:
+    def make_platform_by_arch(self, arch, package_types) -> Platform:  # factory method
         pass
 
     def make_platform_by_arch_name(self, arch_name) -> Platform:
@@ -117,15 +117,9 @@ class LinuxPlatforms(SupportedPlatforms):
         SupportedPlatforms.__init__(self, 'linux', [Architecture('x86_64', 64, '/usr/local'),
                                                     Architecture('i386', 32, '/usr/local'),
                                                     Architecture('armv7l', 32, '/usr/local')], ['DEB', 'RPM', 'TGZ'])
-        distribution_ = None
-
-    def distribution(self) -> str:
-        if not self.distribution_:
-            self.distribution_ = linux_get_dist()
-        return self.distribution_
 
     def make_platform_by_arch(self, arch, package_types) -> Platform:
-        distr = self.distribution()
+        distr = linux_get_dist()
         if distr == 'DEBIAN':
             return DebianPlatform(arch, package_types)
         elif distr == 'RHEL':
