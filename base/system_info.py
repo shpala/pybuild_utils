@@ -280,6 +280,6 @@ def get_supported_build_system_by_name(name) -> BuildSystem:
 
 def stable_path(path) -> str:
     if get_os() == 'windows':
-        return '/' + path.replace("\\", "/").replace(":", '')
+        return path.replace("\\", "/")
 
-    return path.replace("\\", "/").replace(":", '')
+    return path.replace("\\", "/")
