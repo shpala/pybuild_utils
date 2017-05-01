@@ -21,7 +21,7 @@ class Message(object):
 
 
 class Policy(object):
-    def __init__(self, cb):
+    def __init__(self, cb = None):
         self.progress_ = 0.0
         self.cb_ = cb
 
@@ -31,7 +31,8 @@ class Policy(object):
 
     def update_progress_message(self, progress, message):
         self.progress_ = progress
-        self.process(Message(message, MessageType.STATUS))
+        msg = Message(message, MessageType.STATUS)
+        self.process(msg)
 
 
 class CommonPolicy(Policy):
@@ -111,7 +112,7 @@ class NinjaPolicy(Policy):
         return None, None
 
 
-def run_command_cb(cmd: list, policy=Policy):
+def run_command_cb(cmd: list, policy=Policy()):
     try:
         policy.update_progress_message(0.0, 'Command {0} started'.format(cmd))
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE)
