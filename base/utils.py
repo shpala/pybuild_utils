@@ -2,9 +2,9 @@
 
 import os
 import re
+import shutil
 import subprocess
 import tarfile
-import shutil
 from urllib.request import urlopen
 
 

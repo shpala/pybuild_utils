@@ -1,10 +1,12 @@
 #!/usr/bin/env python
-import subprocess
 import re
+import subprocess
+
 
 class MessageType:
     STATUS = 1
     MESSAGE = 2
+
 
 class Message(object):
     def __init__(self, message, type):
@@ -12,10 +14,11 @@ class Message(object):
         self.type_ = type
 
     def message(self):
-        return  self.message_
+        return self.message_
 
     def type(self):
-        return  self.type_
+        return self.type_
+
 
 class Policy(object):
     def __init__(self, cb):
@@ -30,9 +33,11 @@ class Policy(object):
         self.progress_ = progress
         self.process(Message(message, MessageType.STATUS))
 
+
 class CommonPolicy(Policy):
     def __init__(self, cb):
         Policy.__init__(self, cb)
+
 
 class CmakePolicy(Policy):
     def __init__(self, cb):
@@ -44,6 +49,7 @@ class CmakePolicy(Policy):
 
     def update_progress_message(self, progress, message):
         super(CmakePolicy, self).update_progress_message(progress, message)
+
 
 class MakePolicy(Policy):
     def __init__(self, cb):
@@ -74,6 +80,7 @@ class MakePolicy(Policy):
 
         return None
 
+
 class NinjaPolicy(Policy):
     def __init__(self, cb):
         Policy.__init__(self, cb)
@@ -83,7 +90,7 @@ class NinjaPolicy(Policy):
             super(NinjaPolicy, self).process(message)
             return
 
-        cur,total = self.parse_message_to_get_range(message.message())
+        cur, total = self.parse_message_to_get_range(message.message())
         if not cur and not total:
             return
 
@@ -103,9 +110,8 @@ class NinjaPolicy(Policy):
 
         return None, None
 
-def run_command_cb(cmd, policy):
-    if not policy:
-        policy = Policy
+
+def run_command_cb(cmd: list, policy=Policy):
     try:
         policy.update_progress_message(0.0, 'Command {0} started'.format(cmd))
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE)

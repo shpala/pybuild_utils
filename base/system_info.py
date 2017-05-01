@@ -276,3 +276,10 @@ SUPPORTED_BUILD_SYSTEMS = [BuildSystem('ninja', ['ninja'], '-GNinja'),
 
 def get_supported_build_system_by_name(name) -> BuildSystem:
     return next((x for x in SUPPORTED_BUILD_SYSTEMS if x.name() == name), None)
+
+
+def stable_path(path) -> str:
+    if get_os() == 'windows':
+        return '/' + path.replace("\\", "/").replace(":", '')
+
+    return path.replace("\\", "/").replace(":", '')
