@@ -133,7 +133,7 @@ class WindowsMingwPlatform(Platform):
         Platform.__init__(self, 'windows', arch, package_types)
 
     def install_package(self, name):
-        subprocess.call(['pacman', '-SYq', name])
+        subprocess.call(['pacman', '-S', '--noconfirm', name])
 
 
 class WindowsPlatforms(SupportedPlatforms):
