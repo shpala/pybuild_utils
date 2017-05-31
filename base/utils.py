@@ -94,7 +94,7 @@ def extract_file(path, current_dir):
     return os.path.join(current_dir, target_path)
 
 
-def build_command_configure(compiler_flags: CompileInfo, source_dir_path, prefix_path):
+def build_command_configure(compiler_flags: CompileInfo, source_dir_path, prefix_path, executable='./configure'):
     # patches
     script_dir = os.path.dirname(source_dir_path)
 
@@ -107,19 +107,19 @@ def build_command_configure(compiler_flags: CompileInfo, source_dir_path, prefix
                     line = 'patch -p0 < {0}'.format(patch_file)
                     subprocess.call(['bash', '-c', line])
 
-    compile_cmd = ['./configure', '--prefix={0}'.format(prefix_path)]
+    compile_cmd = [executable, '--prefix={0}'.format(prefix_path)]
     compile_cmd.extend(compiler_flags.flags())
     subprocess.call(compile_cmd)
     subprocess.call(['make', '-j2'])
     subprocess.call(['make', 'install'])
 
 
-def build_from_sources(url, compiler_flags: CompileInfo, source_dir_path, prefix_path):
+def build_from_sources(url, compiler_flags: CompileInfo, source_dir_path, prefix_path, executable='./configure'):
     pwd = os.getcwd()
     file_path = download_file(url, pwd)
     extracted_folder = extract_file(file_path, pwd)
     os.chdir(extracted_folder)
-    build_command_configure(compiler_flags, source_dir_path, prefix_path)
+    build_command_configure(compiler_flags, source_dir_path, prefix_path, executable)
     os.chdir(pwd)
     shutil.rmtree(extracted_folder)
 
