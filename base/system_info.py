@@ -116,8 +116,9 @@ class LinuxPlatforms(SupportedPlatforms):
     def __init__(self):
         SupportedPlatforms.__init__(self, 'linux', [Architecture('x86_64', 64, '/usr/local'),
                                                     Architecture('i386', 32, '/usr/local'),
-                                                    Architecture('armv7l', 32, '/usr/local')], ['DEB', 'RPM', 'TGZ'],
-                                                    Architecture('armv6l', 32, '/usr/local')], ['DEB', 'RPM', 'TGZ'])
+                                                    Architecture('armv7l', 32, '/usr/local'), 
+                                                    Architecture('armv6l', 32, '/usr/local')], 
+                                                    ['DEB', 'RPM', 'TGZ'])
 
     def make_platform_by_arch(self, arch, package_types) -> Platform:
         distr = linux_get_dist()
