@@ -112,6 +112,8 @@ def build_command_configure(compiler_flags: CompileInfo, source_dir_path, prefix
     subprocess.call(compile_cmd)
     subprocess.call(['make', '-j2'])
     subprocess.call(['make', 'install'])
+    if shutil.which('ldconfig'):
+        subprocess.call(['ldconfig'])
 
 
 def build_from_sources(url, compiler_flags: CompileInfo, source_dir_path, prefix_path, executable='./configure'):
