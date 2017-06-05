@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import errno
 import os
 import re
 import shutil
@@ -136,3 +137,14 @@ def git_clone(url, current_dir):
     common_git_clone_init_line = ['git', 'submodule', 'update', '--init', '--recursive']
     subprocess.call(common_git_clone_init_line)
     return os.path.join(current_dir, cloned_dir)
+
+
+def symlink_force(target, link_name):
+    try:
+        os.symlink(target, link_name)
+    except OSError as e:
+        if e.errno == errno.EEXIST:
+            os.remove(link_name)
+            os.symlink(target, link_name)
+        else:
+            raise e
