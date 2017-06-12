@@ -128,7 +128,7 @@ def build_from_sources(url, compiler_flags: CompileInfo, source_dir_path, prefix
 
 
 def git_clone(url, current_dir):
-    common_git_clone_line = ['git', 'clone', url]
+    common_git_clone_line = ['git', 'clone', '--depth=1', url]
     cloned_dir = os.path.splitext(url.rsplit('/', 1)[-1])[0]
     common_git_clone_line.append(cloned_dir)
     subprocess.call(common_git_clone_line)
