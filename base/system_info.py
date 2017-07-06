@@ -251,10 +251,6 @@ def get_supported_platform_by_name(platform) -> SupportedPlatforms:
     return next((x for x in SUPPORTED_PLATFORMS if x.name() == platform), None)
 
 
-def gen_routing_key(platform, arch) -> str:
-    return platform + '_' + arch
-
-
 class BuildSystem:
     def __init__(self, name, cmd_line, cmake_generator_arg):
         self.name_ = name
