@@ -114,6 +114,7 @@ class RedHatPlatform(Platform):
 class LinuxPlatforms(SupportedPlatforms):
     def __init__(self):
         SupportedPlatforms.__init__(self, 'linux', [Architecture('x86_64', 64, '/usr/local'),
+                                                    Architecture('amd64', 64, '/usr/local'),
                                                     Architecture('i386', 32, '/usr/local'),
                                                     Architecture('aarch64', 64, '/usr/local'),
                                                     Architecture('armv7l', 32, '/usr/local'),
@@ -219,7 +220,7 @@ def get_extension_by_package(package_type) -> str:
     elif package_type == 'APK':
         return 'apk'
     else:
-        return None
+        return 'unknown'
 
 
 def get_os() -> str:
@@ -237,7 +238,7 @@ def get_os() -> str:
     elif uname_str == 'Android':
         return 'android'
     else:
-        return None
+        return 'unknown'
 
 
 def get_arch_name() -> str:
