@@ -114,7 +114,6 @@ class RedHatPlatform(Platform):
 class LinuxPlatforms(SupportedPlatforms):
     def __init__(self):
         SupportedPlatforms.__init__(self, 'linux', [Architecture('x86_64', 64, '/usr/local'),
-                                                    Architecture('amd64', 64, '/usr/local'),
                                                     Architecture('i386', 32, '/usr/local'),
                                                     Architecture('aarch64', 64, '/usr/local'),
                                                     Architecture('armv7l', 32, '/usr/local'),
@@ -176,7 +175,8 @@ class FreeBSDCommonPlatform(Platform):
 
 class FreeBSDPlatforms(SupportedPlatforms):
     def __init__(self):
-        SupportedPlatforms.__init__(self, 'freebsd', [Architecture('x86_64', 64, '/usr/local')], ['TGZ'])
+        SupportedPlatforms.__init__(self, 'freebsd', [Architecture('x86_64', 64, '/usr/local'),
+                                                      Architecture('amd64', 64, '/usr/local')], ['TGZ'])
 
     def make_platform_by_arch(self, arch, package_types) -> Platform:
         return FreeBSDCommonPlatform(arch, package_types)
@@ -242,10 +242,7 @@ def get_os() -> str:
 
 
 def get_arch_name() -> str:
-    arch = platform.machine()
-    if arch == 'AMD64':
-        return 'x86_64'
-    return arch
+    return platform.machine()
 
 
 def get_supported_platform_by_name(platform) -> SupportedPlatforms:
