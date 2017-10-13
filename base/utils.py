@@ -136,7 +136,9 @@ def git_clone(url, current_dir):
 
     common_git_clone_init_line = ['git', 'submodule', 'update', '--init', '--recursive']
     subprocess.call(common_git_clone_init_line)
-    return os.path.join(current_dir, cloned_dir)
+    dir = os.path.join(current_dir, cloned_dir)
+    shutil.rmtree(os.path.join(dir, '.git'))
+    return dir
 
 
 def symlink_force(target, link_name):
