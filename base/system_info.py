@@ -140,8 +140,9 @@ class WindowsMingwPlatform(Platform):
 
 class WindowsPlatforms(SupportedPlatforms):
     def __init__(self):
-        SupportedPlatforms.__init__(self, 'windows', [Architecture('x86_64', 64, '/mingw64'),
-                                                      Architecture('i386', 32, '/mingw32')], ['NSIS', 'ZIP'])
+        SupportedPlatforms.__init__(self, 'windows',
+                                    [Architecture('x86_64', 64, '/mingw64'), Architecture('AMD64', 64, '/mingw64'),
+                                     Architecture('i386', 32, '/mingw32')], ['NSIS', 'ZIP'])
 
     def make_platform_by_arch(self, arch, package_types) -> Platform:
         return WindowsMingwPlatform(arch, package_types)
