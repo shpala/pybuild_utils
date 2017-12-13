@@ -32,9 +32,9 @@ class CompileInfo(object):
         self.flags_.extend(other_args)
 
 
-def read_file_line_by_line(file) -> list:
+def read_file_line_by_line_to_list(file) -> list:
     if not os.path.exists(file):
-        raise BuildError('file path: %s not exists' % file)
+        raise BuildError('file path: {0} not exists'.format(file))
 
     file_array = []
     with open(file, "r") as ins:
@@ -44,25 +44,37 @@ def read_file_line_by_line(file) -> list:
     return file_array
 
 
+def read_file_line_by_line_to_set(file) -> set:
+    if not os.path.exists(file):
+        raise BuildError('file path: {0} not exists'.format(file))
+
+    file_set = set()
+    with open(file, "r") as ins:
+        for line in ins:
+            file_set.add(line.strip())
+
+    return file_set
+
+
 def download_file(url, current_dir):
     file_name = url.split('/')[-1]
-    responce = urlopen(url)
-    if responce.status != 200:
+    response = urlopen(url)
+    if response.status != 200:
         raise BuildError(
-            "Can't fetch url: %s, status: %s, responce: %s" % (url, responce.status, responce.reason))
+            "Can't fetch url: {0}, status: {1}, response: {2}".format(url, response.status, response.reason))
 
     f = open(file_name, 'wb')
     file_size = 0
-    header = responce.getheader("Content-Length")
+    header = response.getheader("Content-Length")
     if header:
         file_size = int(header)
 
-    print("Downloading: %s Bytes: %s" % (file_name, file_size))
+    print("Downloading: {0} Bytes: {1}".format(file_name, file_size))
 
     file_size_dl = 0
     block_sz = 8192
     while True:
-        buffer = responce.read(block_sz)
+        buffer = response.read(block_sz)
         if not buffer:
             break
 
@@ -99,8 +111,8 @@ def build_command_configure(compiler_flags: CompileInfo, source_dir_path, prefix
     # patches
     script_dir = os.path.dirname(source_dir_path)
 
-    for dir in compiler_flags.patches():
-        scan_dir = os.path.join(script_dir, dir)
+    for file_names in compiler_flags.patches():
+        scan_dir = os.path.join(script_dir, file_names)
         if os.path.exists(scan_dir):
             for diff in os.listdir(scan_dir):
                 if re.match(r'.+\.patch', diff):
