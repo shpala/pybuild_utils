@@ -2,6 +2,7 @@
 
 import errno
 import os
+import stat
 import re
 import shutil
 import subprocess
@@ -110,6 +111,9 @@ def extract_file(path, current_dir):
 def build_command_configure(compiler_flags: CompileInfo, source_dir_path, prefix_path, executable='./configure'):
     # patches
     script_dir = os.path.dirname(source_dir_path)
+    # +x for exec file
+    st = os.stat(executable)
+    os.chmod(executable, st.st_mode | stat.S_IEXEC)
 
     for file_names in compiler_flags.patches():
         scan_dir = os.path.join(script_dir, file_names)
