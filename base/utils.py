@@ -143,7 +143,7 @@ def build_from_sources(url, compiler_flags: CompileInfo, source_dir_path, prefix
     shutil.rmtree(extracted_folder)
 
 
-def git_clone(url, current_dir):
+def git_clone(url: str, current_dir: str, remove_dot_git=True):
     common_git_clone_line = ['git', 'clone', '--depth=1', url]
     cloned_dir = os.path.splitext(url.rsplit('/', 1)[-1])[0]
     common_git_clone_line.append(cloned_dir)
@@ -152,9 +152,10 @@ def git_clone(url, current_dir):
 
     common_git_clone_init_line = ['git', 'submodule', 'update', '--init', '--recursive']
     subprocess.call(common_git_clone_init_line)
-    dir = os.path.join(current_dir, cloned_dir)
-    shutil.rmtree(os.path.join(dir, '.git'))
-    return dir
+    directory = os.path.join(current_dir, cloned_dir)
+    if remove_dot_git:
+        shutil.rmtree(os.path.join(directory, '.git'))
+    return directory
 
 
 def symlink_force(target, link_name):
