@@ -33,6 +33,13 @@ class CompileInfo(object):
         self.flags_.extend(other_args)
 
 
+def is_valid_email(email: str) -> bool:
+    if not re.match('[^@]+@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$', email):
+        return False
+
+    return True
+
+
 def read_file_line_by_line_to_list(file) -> list:
     if not os.path.exists(file):
         raise BuildError('file path: {0} not exists'.format(file))
