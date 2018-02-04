@@ -47,7 +47,7 @@ def is_role_based_email(email: str) -> bool:
         return False
 
     start = match.group(1)
-    for x in ['noreply', 'support', 'admin']:
+    for x in ['noreply', 'support', 'admin', 'postmaster']:
         if start == x:
             return True
 
