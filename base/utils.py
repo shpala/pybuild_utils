@@ -40,6 +40,20 @@ def is_valid_email(email: str) -> bool:
     return True
 
 
+def is_role_based_email(email: str) -> bool:
+    r = re.compile('([^@]+)@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$')
+    match = r.match(email)
+    if not match:
+        return False
+
+    start = match.group(1)
+    for x in ['noreply', 'support', 'admin']:
+        if start == x:
+            return True
+
+    return False
+
+
 def read_file_line_by_line_to_list(file) -> list:
     if not os.path.exists(file):
         raise BuildError('file path: {0} not exists'.format(file))
