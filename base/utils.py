@@ -178,6 +178,19 @@ def git_clone(url: str, current_dir: str, remove_dot_git=True):
         shutil.rmtree(os.path.join(directory, '.git'))
     return directory
 
+def git_clone_branch(url: str, branch: str, current_dir: str, remove_dot_git=True):
+    common_git_clone_line = ['git', 'clone', '-b', branch, '--single-branch', '--depth=1', url]
+    cloned_dir = os.path.splitext(url.rsplit('/', 1)[-1])[0]
+    common_git_clone_line.append(cloned_dir)
+    subprocess.call(common_git_clone_line)
+    os.chdir(cloned_dir)
+
+    common_git_clone_init_line = ['git', 'submodule', 'update', '--init', '--recursive']
+    subprocess.call(common_git_clone_init_line)
+    directory = os.path.join(current_dir, cloned_dir)
+    if remove_dot_git:
+        shutil.rmtree(os.path.join(directory, '.git'))
+    return directory
 
 def symlink_force(target, link_name):
     try:
